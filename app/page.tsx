@@ -34,7 +34,7 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap gap-4">
             <a
-              href="#features"
+              href="/players"
               className="rounded-full bg-[#0b5fa5] px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-[#0b5fa5]/20 transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#094a7e]"
             >
               Get Started
