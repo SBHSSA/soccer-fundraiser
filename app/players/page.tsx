@@ -1,64 +1,108 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
 
-const players = Array.from({ length: 20 }, (_, index) => {
-  const number = index + 1;
-  return {
-    id: number,
-    name: `Player ${number}`,
-    jersey: `#${number}`,
-  };
-});
+type PlayerPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
-export default function PlayersPage() {
-  return (
-    <main className="min-h-screen bg-[#163A63] px-4 py-10 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex items-center justify-between gap-3">
+export default async function PlayerPage({ params }: PlayerPageProps) {
+  const { id } = await params;
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { data: player, error } = await supabase
+    .from("players")
+    .select("id, name")
+    .eq("id", id)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-5 py-12 text-white">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-red-400/40 bg-red-950/30 p-6">
+          <h1 className="text-2xl font-bold">Unable to load this player</h1>
+          <p className="mt-3 text-red-100">{error.message}</p>
+
           <Link
-            href="/"
-            className="rounded-full border border-[#f4b51f] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#f4b51f] hover:text-[#0b2545]"
+            href="/players"
+            className="mt-6 inline-block font-semibold text-amber-300"
           >
-            Back to Home
+            ← Return to players
           </Link>
-          <p className="rounded-full bg-[#f4b51f]/20 px-3 py-1 text-sm font-semibold uppercase tracking-[0.25em] text-[#f4b51f]">
-            Saddle Brook HS Girls Soccer Fundraiser
-          </p>
         </div>
+      </main>
+    );
+  }
 
-        <div className="mb-8 rounded-[2rem] border border-white/20 bg-[#1d4b7a]/70 p-8 text-center shadow-2xl shadow-black/20">
-          <h1 className="text-4xl font-bold tracking-tight text-[#f4b51f] sm:text-5xl">
-            Choose Your Player
+  if (!player) {
+    notFound();
+  }
+
+  const firstName =
+    player.name?.trim().split(/\s+/)[0] || "Player";
+
+  return (
+    <main className="min-h-screen bg-slate-950 px-5 py-8 text-white sm:py-12">
+      <div className="mx-auto max-w-4xl">
+        <Link
+          href="/players"
+          className="mb-8 inline-flex items-center font-semibold text-amber-300 hover:text-amber-200"
+        >
+          ← Back to all players
+        </Link>
+
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-7 shadow-2xl sm:p-10">
+          <p className="text-center text-sm font-bold uppercase tracking-[0.25em] text-amber-300">
+            Saddle Brook Girls Soccer
+          </p>
+
+          <h1 className="mt-4 text-center text-4xl font-bold sm:text-5xl">
+            Support {firstName}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90">
-            Select the student athlete you would like to support.
-          </p>
-        </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {players.map((player) => (
-            <Link
-              key={player.id}
-              href={`/players/${player.id}`}
-              className="overflow-hidden rounded-[1.5rem] border border-white/20 bg-[#1d4b7a]/70 p-6 text-center shadow-lg shadow-black/10 transition hover:-translate-y-1 hover:bg-[#255d9e]"
-            >
-              <div className="flex items-center justify-center">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-[#f4b51f] bg-white/10 text-xl font-semibold text-[#f4b51f]">
-                  <span className="text-4xl">⚽</span>
-                </div>
+          <p className="mx-auto mt-5 max-w-2xl text-center leading-7 text-slate-300">
+            Help {firstName} and the Saddle Brook High School Girls Soccer
+            team kickstart a successful season.
+          </p>
+
+          <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-amber-300/30 bg-amber-300/5 p-7">
+            <p className="text-center text-sm font-bold uppercase tracking-[0.2em] text-amber-300">
+              Personalized Digital Soccer Ball
+            </p>
+
+            <div className="mt-6 flex justify-center">
+              <div
+                className="flex h-36 w-36 items-center justify-center rounded-full border-4 border-amber-300 bg-white text-7xl shadow-lg"
+                aria-hidden="true"
+              >
+                ⚽
               </div>
-              <div className="mt-6">
-                <p className="text-sm uppercase tracking-[0.24em] text-[#f4b51f]">Player</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">{player.name}</h2>
-                <p className="mt-2 text-lg font-medium text-white/80">Jersey {player.jersey}</p>
-              </div>
-              <div className="mt-8 flex justify-center">
-                <span className="rounded-full bg-[#f4b51f] px-6 py-3 text-sm font-semibold text-[#0b2545] transition hover:brightness-105">
-                  Select Player
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+            </div>
+
+            <p className="mt-6 text-center text-sm leading-6 text-slate-300">
+              Supporters will be able to add a personalized message to
+              {` ${firstName}'s`} digital soccer ball.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled
+            className="mt-8 w-full cursor-not-allowed rounded-xl bg-amber-300 px-6 py-4 text-lg font-bold text-slate-950 opacity-70"
+          >
+            Donation and Message Form — Coming Next
+          </button>
+
+          <p className="mt-3 text-center text-xs text-slate-400">
+            No payment will be collected during testing.
+          </p>
+        </section>
       </div>
     </main>
   );

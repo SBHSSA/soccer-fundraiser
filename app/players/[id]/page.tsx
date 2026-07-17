@@ -1,75 +1,78 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
 
-const players = Array.from({ length: 20 }, (_, index) => ({
-  id: index + 1,
-  name: `Player ${index + 1}`,
-  jersey: `#${index + 1}`,
-}));
-
-type PlayerDetailPageProps = {
-  params: Promise<{ id: string }>;
+type Player = {
+  id: string;
+  name: string | null;
 };
 
-export default async function PlayerDetailPage({ params }: PlayerDetailPageProps) {
-  const { id } = await params;
-  const playerId = Number(id);
-  const player = players.find((item) => item.id === playerId);
+export default async function PlayersPage() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
-  if (!player) {
-    notFound();
-  }
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, name")
+    .eq("active", true)
+    .order("name", { ascending: true });
+
+  const players = (data ?? []) as Player[];
 
   return (
-    <main className="min-h-screen bg-[#163A63] px-4 py-10 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-[#f4b51f]">{player.name}</h1>
-          <Link
-            href="/players"
-            className="rounded-full border border-[#f4b51f] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#f4b51f] hover:text-[#0b2545]"
-          >
-            Back to Players
-          </Link>
+    <main className="min-h-screen bg-slate-950 px-5 py-10 text-white">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-10 text-center">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">
+            Saddle Brook High School
+          </p>
+
+          <h1 className="text-4xl font-bold sm:text-5xl">
+            Support Our Players
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-2xl text-slate-300">
+            Choose a player to visit her fundraising page and help kickstart
+            the season.
+          </p>
         </div>
 
-        <section className="rounded-[2rem] border border-white/20 bg-[#1d4b7a]/70 p-8 shadow-2xl shadow-black/20">
-          <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-center">
-            <div className="flex justify-center">
-              <div className="flex h-56 w-56 items-center justify-center rounded-full border-4 border-[#f4b51f] bg-white/10 text-center shadow-inner">
-                <div className="text-4xl font-bold text-[#f4b51f]">⚽</div>
-              </div>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#f4b51f]">
-                  Player Number
-                </p>
-                <p className="mt-2 text-3xl font-semibold">{player.id}</p>
-              </div>
-
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#f4b51f]">
-                  Jersey Number
-                </p>
-                <p className="mt-2 text-3xl font-semibold">{player.jersey}</p>
-              </div>
-
-              <h2 className="text-2xl font-semibold text-white">
-                Personalize This Player’s Ball
-              </h2>
-
-              <button
-                type="button"
-                disabled
-                className="w-full rounded-full border border-[#f4b51f] bg-[#f4b51f]/20 px-6 py-4 text-left text-base font-semibold text-white/70"
-              >
-                Message and Donation Form — Coming Next
-              </button>
-            </div>
+        {error ? (
+          <div className="rounded-xl border border-red-400/40 bg-red-950/40 p-5 text-red-100">
+            Database error: {error.message}
           </div>
-        </section>
+        ) : players.length === 0 ? (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center">
+            No active players are available yet.
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {players.map((player) => {
+              const firstName =
+                player.name?.trim().split(/\s+/)[0] || "Player";
+
+              return (
+                <Link
+                  key={player.id}
+                  href={`/players/${player.id}`}
+                  className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg transition hover:-translate-y-1 hover:border-amber-300/70 hover:bg-white/10"
+                >
+                  <div className="flex h-40 items-center justify-center rounded-xl bg-slate-900 text-7xl">
+                    ⚽
+                  </div>
+
+                  <h2 className="mt-5 text-center text-2xl font-bold group-hover:text-amber-300">
+                    {firstName}
+                  </h2>
+
+                  <p className="mt-4 text-center font-semibold text-amber-300">
+                    View fundraising page →
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </main>
   );
