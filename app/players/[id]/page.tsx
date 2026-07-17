@@ -1,78 +1,93 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
-type Player = {
-  id: string;
-  name: string | null;
+type PlayerPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
 };
 
-export default async function PlayersPage() {
+function getFirstName(name: string | null) {
+  return name?.trim().split(/\s+/)[0] || "Player";
+}
+
+export default async function PlayerPage({ params }: PlayerPageProps) {
+  const { id } = await params;
+
+  if (!id || id === "undefined") {
+    notFound();
+  }
+
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const { data, error } = await supabase
+  const { data: player, error } = await supabase
     .from("players")
     .select("id, name")
+    .eq("id", id)
     .eq("active", true)
-    .order("name", { ascending: true });
+    .maybeSingle();
 
-  const players = (data ?? []) as Player[];
+  if (error) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-5 py-12 text-white">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-red-400/40 bg-red-950/30 p-6">
+          <h1 className="text-2xl font-bold">Unable to load this player</h1>
+          <p className="mt-3 text-red-100">{error.message}</p>
+          <Link
+            href="/players"
+            className="mt-6 inline-block font-semibold text-amber-300"
+          >
+            ← Return to players
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (!player) {
+    notFound();
+  }
+
+  const firstName = getFirstName(player.name);
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 text-center">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">
-            Saddle Brook High School
+      <div className="mx-auto max-w-4xl">
+        <Link href="/players" className="font-semibold text-amber-300">
+          ← Return to players
+        </Link>
+
+        <section className="mt-8 rounded-3xl border border-amber-300/30 bg-slate-900 p-8 text-center">
+          <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-full border-4 border-amber-300 text-7xl">
+            ⚽
+          </div>
+
+          <p className="mt-8 text-sm font-bold uppercase tracking-[0.25em] text-amber-300">
+            Support Our Player
           </p>
 
-          <h1 className="text-4xl font-bold sm:text-5xl">
-            Support Our Players
-          </h1>
+          <h1 className="mt-3 text-5xl font-bold">{firstName}</h1>
 
-          <p className="mx-auto mt-4 max-w-2xl text-slate-300">
-            Choose a player to visit her fundraising page and help kickstart
-            the season.
+          <p className="mx-auto mt-5 max-w-xl text-slate-300">
+            Help support {firstName} and the Saddle Brook High School Girls
+            Soccer team.
           </p>
-        </div>
 
-        {error ? (
-          <div className="rounded-xl border border-red-400/40 bg-red-950/40 p-5 text-red-100">
-            Database error: {error.message}
-          </div>
-        ) : players.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center">
-            No active players are available yet.
-          </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {players.map((player) => {
-              const firstName =
-                player.name?.trim().split(/\s+/)[0] || "Player";
+          <button
+            type="button"
+            disabled
+            className="mt-8 rounded-full bg-amber-300 px-7 py-3 font-bold text-slate-950 opacity-70"
+          >
+            Donation and Message Form — Coming Next
+          </button>
 
-              return (
-                <Link
-                  key={player.id}
-                  href={`/players/${player.id}`}
-                  className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg transition hover:-translate-y-1 hover:border-amber-300/70 hover:bg-white/10"
-                >
-                  <div className="flex h-40 items-center justify-center rounded-xl bg-slate-900 text-7xl">
-                    ⚽
-                  </div>
-
-                  <h2 className="mt-5 text-center text-2xl font-bold group-hover:text-amber-300">
-                    {firstName}
-                  </h2>
-
-                  <p className="mt-4 text-center font-semibold text-amber-300">
-                    View fundraising page →
-                  </p>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+          <p className="mt-3 text-xs text-slate-400">
+            No payment will be collected during testing.
+          </p>
+        </section>
       </div>
     </main>
   );
