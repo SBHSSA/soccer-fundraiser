@@ -3,8 +3,9 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-[#163a63]">
-      <div className="relative aspect-[3/2] w-[min(100vw,150dvh)]">
+    <main className="min-h-[100dvh] w-full overflow-hidden bg-[#163a63]">
+      {/* Mobile homepage */}
+      <div className="relative h-[100dvh] w-full md:hidden">
         <Image
           src="/images/homepage-hero-mobile.png"
           alt="Saddle Brook High School Girls Soccer Kickstart Our Season fundraiser"
@@ -14,32 +15,65 @@ export default function Home() {
           className="object-contain"
         />
 
-        {/* Players in top navigation */}
-        <Link
-          href="/players"
-          aria-label="View players"
-          className="absolute left-[43.5%] top-[3.5%] z-20 h-[7%] w-[8%] cursor-pointer"
-        />
-
-        {/* Top-right Get Started */}
+        {/* Mobile top Get Started */}
         <Link
           href="/players"
           aria-label="Get started and choose a player"
-          className="absolute left-[83%] top-[2.5%] z-20 h-[8%] w-[14%] cursor-pointer"
+          className="absolute left-[64%] top-[2.5%] z-20 h-[7%] w-[31%]"
         />
 
-        {/* Large Get Started button */}
+        {/* Mobile large Get Started */}
         <Link
           href="/players"
           aria-label="Get started and choose a player"
-          className="absolute left-[15.5%] top-[68%] z-20 h-[10%] w-[21%] cursor-pointer"
+          className="absolute left-[12%] top-[59%] z-20 h-[7%] w-[76%]"
         />
 
-        {/* Large See How It Works button */}
+        {/* Mobile See How It Works */}
         <Link
           href="/players"
           aria-label="See how the fundraiser works"
-          className="absolute left-[38%] top-[68%] z-20 h-[10%] w-[23%] cursor-pointer"
+          className="absolute left-[12%] top-[67%] z-20 h-[6%] w-[76%]"
+        />
+      </div>
+
+      {/* Desktop and tablet homepage */}
+      <div className="relative hidden h-[100dvh] w-full md:block">
+        <Image
+          src="/images/homepage-hero-final.png"
+          alt="Saddle Brook High School Girls Soccer Kickstart Our Season fundraiser"
+          fill
+          priority
+          sizes="100vw"
+          className="object-contain"
+        />
+
+        {/* Desktop Players */}
+        <Link
+          href="/players"
+          aria-label="View players"
+          className="absolute left-[43.5%] top-[3.5%] z-20 h-[7%] w-[8%]"
+        />
+
+        {/* Desktop top Get Started */}
+        <Link
+          href="/players"
+          aria-label="Get started and choose a player"
+          className="absolute left-[83%] top-[2.5%] z-20 h-[8%] w-[14%]"
+        />
+
+        {/* Desktop large Get Started */}
+        <Link
+          href="/players"
+          aria-label="Get started and choose a player"
+          className="absolute left-[8%] top-[66%] z-20 h-[10%] w-[21%]"
+        />
+
+        {/* Desktop See How It Works */}
+        <Link
+          href="/players"
+          aria-label="See how the fundraiser works"
+          className="absolute left-[30%] top-[66%] z-20 h-[10%] w-[23%]"
         />
       </div>
     </main>
